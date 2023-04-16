@@ -1,0 +1,6 @@
+CREATE DATABASE bd2_jdbc;
+
+CREATE TABLE pessoa (
+    ID SMALLINT PRIMARY KEY,
+    nome VARCHAR(30)
+)

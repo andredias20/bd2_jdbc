@@ -17,33 +17,91 @@ public class PessoaDAO {
         this.connection = connection;
     }
 
-    public List<Pessoa> listAll(){
-        
+    public List<Pessoa> listAll() {
+
         try (PreparedStatement prep = connection.prepareStatement("SELECT * FROM pessoa")) {
             ResultSet resultSet = prep.executeQuery();
-            return resultSetConverter(resultSet);
+            return convertResultSetToListPessoas(resultSet);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private List<Pessoa> resultSetConverter(ResultSet rs) {
+    public Pessoa listById(int id) {
+        try (PreparedStatement prep = connection.prepareStatement("SELECT * FROM pessoa WHERE id = "+id)) {
+            ResultSet resultSet = prep.executeQuery();
+            resultSet.next();
+            return convertResultSetToPessoas(resultSet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean update(Pessoa pessoa){
+        try(PreparedStatement prep = connection.prepareStatement("UPDATE pessoa SET nome = ?, idade = ? WHERE id = ?")){
+            prep.setString(1, pessoa.getNome());
+            prep.setInt(2, pessoa.getIdade());
+            prep.setInt(3, pessoa.getId());
+
+            System.out.println(prep.executeUpdate());
+            return true;
+            
+        } catch(SQLException e){
+            System.out.println("PessoaDAO.update: "+e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean create(Pessoa pessoa){
+        try(PreparedStatement prep = connection.prepareStatement("INSERT INTO pessoa(nome, idade) VALUES(?, ?)")){
+
+            prep.setString(1, pessoa.getNome());
+            prep.setInt(2, pessoa.getIdade());
+
+            System.out.println(prep.executeUpdate());
+            return true;
+            
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean delete(int id){
+        try (PreparedStatement prep = connection.prepareStatement("DELETE FROM pessoa WHERE id = "+id)) {
+            prep.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private List<Pessoa> convertResultSetToListPessoas(ResultSet rs) {
         List<Pessoa> list = new ArrayList<>();
         try {
             while (rs.next()) {
-                Pessoa pessoa = new Pessoa();
-                
-                pessoa.setNome(rs.getString("nome"));
-                pessoa.setNome(rs.getString("66")); // TODO: Adicionar campo ao DB
-                
-                list.add(pessoa);
+                list.add(convertResultSetToPessoas(rs));
             }
         } catch (SQLException e) {
-            System.out.println("ResultSetConverter: "+e.getMessage());
+            e.printStackTrace();
         }
         return list;
-    
+
+    }
+
+    private Pessoa convertResultSetToPessoas(ResultSet rs) {
+        Pessoa pessoa = new Pessoa();
+        try {
+            pessoa.setId(rs.getInt("id"));
+            pessoa.setNome(rs.getString("nome"));
+            pessoa.setIdade(rs.getInt("idade"));
+        } catch (SQLException e) {
+            System.out.println("ResultSetConverter: " + e.getMessage());
+        }
+        return pessoa;
     }
 
 }
